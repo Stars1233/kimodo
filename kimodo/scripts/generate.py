@@ -73,6 +73,11 @@ def parse_args():
         help="Also export BVH (SOMA models only); uses the same stem as --output.",
     )
     parser.add_argument(
+        "--bvh_standard_tpose",
+        action="store_true",
+        help="If exporting BVH, export with the rest pose being the standard T-pose rather than the rest pose consistent with the BONES-SEED dataset.",
+    )
+    parser.add_argument(
         "--no-postprocess",
         action="store_true",
         help="Don't apply motion post-processing to reduce foot skating (ignored for G1)",
@@ -391,7 +396,14 @@ def main():
                 joints_rot = torch.from_numpy(output["global_rot_mats"][0]).to(device)
                 local_rot_mats = global_rots_to_local_rots(joints_rot, skeleton)
                 root_positions = joints_pos[:, skeleton.root_idx, :]
-                save_motion_bvh(bvh_path, local_rot_mats, root_positions, skeleton=skeleton, fps=model.fps)
+                save_motion_bvh(
+                    bvh_path,
+                    local_rot_mats,
+                    root_positions,
+                    skeleton=skeleton,
+                    fps=model.fps,
+                    standard_tpose=args.bvh_standard_tpose,
+                )
             else:
                 out_dir, _, base_name = _output_dir_and_path(output_base, "motion", ".bvh")
                 print(f"Saving the BVH output to {out_dir}/ ({base_name}_00.bvh ...)")
@@ -406,6 +418,7 @@ def main():
                         root_positions,
                         skeleton=skeleton,
                         fps=model.fps,
+                        standard_tpose=args.bvh_standard_tpose,
                     )
 
 

@@ -22,6 +22,7 @@ def run_convert(
     source_fps: float | None,
     z_up: bool,
     mujoco_rest_zero: bool,
+    bvh_standard_tpose: bool = False,
 ) -> None:
     """Thin wrapper kept for backward compatibility; delegates to :func:`convert_motion_files`."""
     convert_motion_files(
@@ -32,6 +33,7 @@ def run_convert(
         source_fps=source_fps,
         z_up=z_up,
         mujoco_rest_zero=mujoco_rest_zero,
+        bvh_standard_tpose=bvh_standard_tpose,
     )
 
 
@@ -78,6 +80,12 @@ def build_argparser() -> argparse.ArgumentParser:
         default=False,
         help="For G1 CSV: joint angles relative to MuJoCo rest (must match export).",
     )
+    p.add_argument(
+        "--bvh_standard_tpose",
+        action="store_true",
+        default=False,
+        help="If input or output is BVH: the BVH file uses the standard T-pose as its rest pose instead of the BONES-SEED rest pose.",
+    )
     return p
 
 
@@ -92,6 +100,7 @@ def main(argv: list[str] | None = None) -> int:
             source_fps=args.source_fps,
             z_up=not args.no_z_up,
             mujoco_rest_zero=args.mujoco_rest_zero,
+            bvh_standard_tpose=args.bvh_standard_tpose,
         )
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)

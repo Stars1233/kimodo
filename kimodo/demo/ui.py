@@ -698,6 +698,12 @@ def create_gui(
                     ),
                     initial_value="NPZ",
                 )
+                gui_save_bvh_standard_tpose_checkbox = client.gui.add_checkbox(
+                    "Standard T-pose",
+                    initial_value=False,
+                    hint="For BVH export, use the standard T-pose rest skeleton.",
+                    visible=False,
+                )
                 gui_save_motion_button = client.gui.add_button(
                     "Save Motion",
                     hint="Save the current motion (format + path above)",
@@ -799,6 +805,7 @@ def create_gui(
                         motion.joints_pos[:, session.skeleton.root_idx, :],
                         skeleton=session.skeleton,
                         fps=float(session.model_fps),
+                        standard_tpose=bool(gui_save_bvh_standard_tpose_checkbox.value),
                     )
                 elif fmt == "CSV":
                     save_path = _coerce_save_path(save_path, ext=".csv")
@@ -1275,6 +1282,12 @@ def create_gui(
                     ),
                     initial_value="NPZ",
                 )
+                gui_download_bvh_standard_tpose_checkbox = client.gui.add_checkbox(
+                    "Standard T-pose",
+                    initial_value=False,
+                    hint="For BVH export, use the standard T-pose rest skeleton.",
+                    visible=False,
+                )
                 gui_download_button = client.gui.add_button(
                     "Download",
                     hint="Download the current motion (format + name above).",
@@ -1357,6 +1370,23 @@ def create_gui(
             def _update_motion_export_dropdown(loaded_model_name: str) -> None:
                 _update_format_dropdown(gui_download_format_dropdown, loaded_model_name)
                 _update_format_dropdown(gui_save_motion_format_dropdown, loaded_model_name)
+                _update_bvh_standard_tpose_visibility()
+
+            def _update_bvh_standard_tpose_visibility() -> None:
+                gui_save_bvh_standard_tpose_checkbox.visible = (
+                    str(gui_save_motion_format_dropdown.value).upper() == "BVH"
+                )
+                gui_download_bvh_standard_tpose_checkbox.visible = (
+                    str(gui_download_format_dropdown.value).upper() == "BVH"
+                )
+
+            @gui_save_motion_format_dropdown.on_update
+            def _(_event: viser.GuiEvent) -> None:
+                _update_bvh_standard_tpose_visibility()
+
+            @gui_download_format_dropdown.on_update
+            def _(_event: viser.GuiEvent) -> None:
+                _update_bvh_standard_tpose_visibility()
 
             def _coerce_download_filename(raw_name: str, *, ext: str) -> str:
                 """Coerce a user-entered filename to a safe basename with the desired extension.
@@ -1563,6 +1593,7 @@ def create_gui(
                             motion.joints_pos[:, session.skeleton.root_idx, :],  # root positions
                             skeleton=session.skeleton,
                             fps=float(session.model_fps),
+                            standard_tpose=bool(gui_download_bvh_standard_tpose_checkbox.value),
                         )
                         mime = "text/plain"
                     elif fmt == "CSV":

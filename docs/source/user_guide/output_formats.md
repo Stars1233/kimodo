@@ -16,14 +16,16 @@ Generated motions are stored as NPZ files (one file per sample, e.g. `motion_00.
 - `root_positions`: The (non-smoothed) trajectory of the actual root joint (e.g., pelvis) `[T, 3]`
 - `global_root_heading`: The heading direction output from the model `[T, 2]`
 
-For SOMA models, the exported NPZ uses the full **`somaskel77`** skeleton even though the model itself operates internally on the reduced **`somaskel30`** skeleton. This means the saved `posed_joints`, `global_rot_mats`, and `local_rot_mats` arrays are written in the 77-joint SOMA layout. Older 30-joint SOMA NPZ files may still exist and remain loadable for backward compatibility.
-
 Where:
 
 - `T`: number of frames
 - `J`: number of joints in the exported skeleton representation (`77` for SOMA NPZ exports, `34` for G1, `22` for SMPL-X)
 
 If multiple samples are generated, files are saved with suffixes like `_00`, `_01`, etc.
+
+For SOMA models, the exported NPZ uses the full **`somaskel77`** skeleton even though the model itself operates internally on the reduced **`somaskel30`** skeleton. This means the saved `posed_joints`, `global_rot_mats`, and `local_rot_mats` arrays are written in the 77-joint SOMA layout. Older 30-joint SOMA NPZ files may still exist and remain loadable for backward compatibility.
+
+Also for SOMA models, the output motion is saved such that the rest pose (i.e. zero pose) is the standard T-pose that Kimodo uses internally. This differs from the default behavior of BVH export (see below), which uses a rest pose consistent with the BONES-SEED dataset format. The standard T-pose as a BVH file is also available [in the assets of the repo](https://github.com/nv-tlabs/kimodo/tree/main/kimodo/assets/skeletons/somaskel77).
 
 ## BVH Format for Kimodo-SOMA
 
@@ -33,6 +35,7 @@ When using a SOMA model and passing the `--bvh` flag to CLI generation, Kimodo a
 - the exported hierarchy uses the full **`somaskel77`** skeleton
 - if the motion is still in internal `somaskel30` form, Kimodo converts it to `somaskel77` before writing the BVH
 - the file stores root translation plus per-joint local rotations for the clip at the generated frame rate
+- by default, the rest pose (i.e., zero pose) of the saved BVH file is consistent with the BONES-SEED dataset format. If you prefer a standard T-pose as the rest pose, pass in `--bvh_standard_tpose` when generating.
 
 The exporter writes a standard plain-text BVH file and scales joint offsets and root motion from meters to centimeters (same format as the SEED dataset release). If multiple samples are generated, files are saved with suffixes like `_00`, `_01`, etc.
 

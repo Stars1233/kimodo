@@ -34,8 +34,8 @@ Formats are inferred from file extensions and (for `.npz`) from file contents. Y
 |------|-----|--------|
 | AMASS `.npz` | Kimodo `.npz` | SMPL-X, 22 joints. Uses `--z-up` by default (same as Kimodo’s AMASS export). |
 | Kimodo `.npz` | AMASS `.npz` | Requires `local_rot_mats` with 22 joints (SMPL-X). |
-| SOMA `.bvh` | Kimodo `.npz` | Expects a **Kimodo-exported** SOMA BVH (same hierarchy as `save_motion_bvh`). |
-| Kimodo `.npz` | SOMA `.bvh` | Accepts 77 joints (SOMA full) or 30 joints (somaskel30, auto-expanded to 77 with relaxed-hand rest poses). |
+| SOMA `.bvh` | Kimodo `.npz` | Expects a **Kimodo-exported** SOMA BVH (same hierarchy as `save_motion_bvh`). If the BVH uses the standard T-pose as rest pose, pass in `--bvh_standard_tpose`. |
+| Kimodo `.npz` | SOMA `.bvh` | Accepts 77 joints (SOMA full) or 30 joints (somaskel30, auto-expanded to 77 with relaxed-hand rest poses). If you want the output BVH to use the standard T-pose as rest pose, pass in `--bvh_standard_tpose`. |
 | G1 `.csv` | Kimodo `.npz` | Rows of shape `(36,)` = root xyz + root quat + 29 joint angles (see [output_formats](output_formats.md#csv-format-for-kimodo-g1)). |
 | Kimodo `.npz` | G1 `.csv` | Requires 34 joints (G1). |
 
@@ -44,6 +44,7 @@ Formats are inferred from file extensions and (for `.npz`) from file contents. Y
 - **`--source-fps`**: Source motion frame rate in Hz (used before resampling to 30 Hz for Kimodo NPZ). If omitted, the tool auto-detects from `mocap_frame_rate` (AMASS), `Frame Time` (BVH), or defaults to **30** Hz. The legacy `--fps` alias is still accepted for backward compatibility.
 - **`--no-z-up`**: For AMASS, disable the Y-up ↔ Z-up transform (treat data as already in Kimodo Y-up, +Z forward).
 - **`--mujoco-rest-zero`**: For G1 CSV, match the `mujoco_rest_zero` flag used when the CSV was written (see `MujocoQposConverter.dict_to_qpos`).
+- **`--bvh_standard_tpose`**: If input or output is BVH: the BVH file uses the standard T-pose as its rest pose instead of the BONES-SEED rest pose.
 
 ### Examples
 

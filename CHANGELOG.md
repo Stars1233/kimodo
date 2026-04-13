@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [2026-04-13]
+
+### Added
+- Option `--bvh_standard_tpose` to use standard T-pose for BVH file saved from `generate.py`
+- Option to use standard T-pose for BVH file saved or downloaded from demo
+- Option to input/output BVH files that use standard T-pose with `motion_convert.py`
+- Added BVH file containing the standard Kimodo T-pose to `kimodo/assets/skeletons/somaskel77/somaskel77_standard_tpose.bvh`
+- Updated documentation with these new options
+
 ## [2026-04-10]
 
 ### Added

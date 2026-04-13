@@ -34,6 +34,7 @@ def convert_motion_files(
     source_fps: float | None = None,
     z_up: bool = True,
     mujoco_rest_zero: bool = False,
+    bvh_standard_tpose: bool = False,
 ) -> None:
     """Convert a motion file between Kimodo-supported formats.
 
@@ -53,6 +54,8 @@ def convert_motion_files(
             ``mocap_frame_rate``, or default 30.
         z_up: For AMASS conversions, apply the Z-up <-> Kimodo Y-up transform.
         mujoco_rest_zero: For G1 CSV, joint angles relative to MuJoCo rest pose.
+        bvh_standard_tpose: If input or output is BVH: the BVH file uses the standard T-pose 
+            as its rest pose instead of the BONES-SEED rest pose.
     """
     from_fmt = from_fmt or infer_source_format_from_path(input_path)
     to_fmt = to_fmt or infer_target_format_from_path(output_path, from_fmt)
@@ -83,7 +86,7 @@ def convert_motion_files(
 
     if pair == ("soma-bvh", "kimodo"):
         sk = build_skeleton(77)
-        motion, bvh_fps = bvh_to_kimodo_motion(input_path, skeleton=sk)
+        motion, bvh_fps = bvh_to_kimodo_motion(input_path, skeleton=sk, standard_tpose=bvh_standard_tpose)
         effective_source = source_fps if source_fps is not None else bvh_fps
         save_kimodo_npz_at_target_fps(motion, sk, effective_source, output_path)
         return
@@ -108,6 +111,7 @@ def convert_motion_files(
             data["root_positions"],
             skeleton=sk,
             fps=effective_source,
+            standard_tpose=bvh_standard_tpose,
         )
         return
 

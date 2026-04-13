@@ -65,6 +65,7 @@ def motion_to_bvh(
     *,
     skeleton,
     fps: float,
+    standard_tpose: bool = False,
 ) -> str:
     """Convert local rotations and root positions to BVH format; return UTF-8 string.
 
@@ -73,7 +74,7 @@ def motion_to_bvh(
         root_positions: (T, 3) or (1, T, 3) root joint positions (e.g. from posed joints).
         skeleton: Skeleton with bone_order_names, bvh_neutral_joints, etc.
         fps: Frames per second for the motion.
-
+        standard_tpose: If True, export with the rest pose being the standard T-pose rather than the rest pose consistent with the BONES-SEED dataset.
     Notes:
         BVH is plain-text. Root is named "Root" with ZYX rotation order; leaf joints
         have no End Site block.
@@ -95,9 +96,13 @@ def motion_to_bvh(
         local_rot_mats = skeleton.to_SOMASkeleton77(local_rot_mats)
         skeleton = skeleton.somaskel77
 
-    local_rot_mats, _ = skeleton.from_standard_tpose(local_rot_mats)
+    if standard_tpose:
+        neutral = skeleton.neutral_joints.detach().cpu().numpy()
+    else:
+        # transform local rots to the original rest pose consistent with the BONES-SEED dataset
+        local_rot_mats, _ = skeleton.from_standard_tpose(local_rot_mats)
+        neutral = skeleton.bvh_neutral_joints.detach().cpu().numpy()
 
-    neutral = skeleton.bvh_neutral_joints.detach().cpu().numpy()
     joint_names = list(skeleton.bone_order_names)
     parents = skeleton.joint_parents.detach().cpu().numpy().astype(int)
     root_idx = int(skeleton.root_idx)
@@ -126,7 +131,7 @@ def motion_to_bvh(
     ]
     _JOINT_CHANNELS = ["Zrotation", "Yrotation", "Xrotation"]
 
-    # Scale from meters to centimeters (match original BVH scale).
+    # Scale from meters to centimeters (match original SEED data BVH scale).
     neutral = neutral * 100
     root_xyz = root_xyz * 100
 
@@ -212,12 +217,19 @@ def motion_to_bvh_bytes(
     *,
     skeleton,
     fps: float,
+    standard_tpose: bool = False,
 ) -> bytes:
     """Convert local rotations and root positions to BVH bytes (UTF-8).
 
     Convenience wrapper around :func:`motion_to_bvh`.
     """
-    return motion_to_bvh(local_rot_mats, root_positions, skeleton=skeleton, fps=fps).encode("utf-8")
+    return motion_to_bvh(
+        local_rot_mats,
+        root_positions,
+        skeleton=skeleton,
+        fps=fps,
+        standard_tpose=standard_tpose,
+    ).encode("utf-8")
 
 
 def save_motion_bvh(
@@ -227,10 +239,11 @@ def save_motion_bvh(
     *,
     skeleton,
     fps: float,
+    standard_tpose: bool = False,
 ) -> None:
     """Write local rotations and root positions to a BVH file at the given path."""
     Path(path).write_text(
-        motion_to_bvh(local_rot_mats, root_positions, skeleton=skeleton, fps=fps),
+        motion_to_bvh(local_rot_mats, root_positions, skeleton=skeleton, fps=fps, standard_tpose=standard_tpose),
         encoding="utf-8",
     )
 
@@ -248,6 +261,8 @@ def read_bvh_frame_time_seconds(path: Union[str, Path]) -> float:
 def bvh_to_kimodo_motion(
     path: Union[str, Path],
     skeleton=None,
+    *,
+    standard_tpose: bool = False,
 ) -> Tuple:
     """Load a Kimodo-style SOMA BVH into a Kimodo motion dict.
 
@@ -277,6 +292,7 @@ def bvh_to_kimodo_motion(
             f"BVH has {local_rot_mats.shape[1]} joints but skeleton has {skeleton.nbjoints}; "
             "use a Kimodo-exported SOMA BVH or matching skeleton."
         )
-    local_rot_mats, _ = skeleton.to_standard_tpose(local_rot_mats)
+    if not standard_tpose:
+        local_rot_mats, _ = skeleton.to_standard_tpose(local_rot_mats)
 
     return complete_motion_dict(local_rot_mats, root_trans, skeleton, float(bvh_fps)), bvh_fps

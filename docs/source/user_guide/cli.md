@@ -55,6 +55,12 @@ CLI generation uses a single **output stem** (`--output`) for all formats (NPZ, 
 
 Use the `--bvh` flag to also export BVH (SOMA only) to the same stem.
 
+### Output Rest Pose
+
+For SOMA-based Kimodo models, motions can be exported with respect to two different rest poses. The default rest pose, that is always used by the `NPZ` format, is a standard T-pose consistent with the canonical T-pose of the SOMA model. For `BVH` outputs, the default rest pose is a non-standard pose, but it is consistent with the BVH format of the [BONES-SEED dataset](https://huggingface.co/datasets/bones-studio/seed). To output a `BVH` file with the standard T-pose as the rest pose, you can use the `--bvh_standard_tpose` option.
+
+The standard T-pose used by Kimodo is available as a BVH file in the [repo assets](https://github.com/nv-tlabs/kimodo/tree/main/kimodo/assets/skeletons/somaskel77).
+
 ## Visualizing Generated Motions
 
 Motions generated with the CLI can be visualized in the demo UI. To do this, under "Load/Save" > "Motion", type in the path of the generated output npz file, then click "Load Motion" to load it into the viewer. If you used constraints when generating, those can also be loaded in in a similar way.
@@ -73,6 +79,7 @@ To see all available flags, run `kimodo_gen --help`. They are:
 - `--constraints`: Path to a JSON file containing constraints
 - `--output`: Output stem name (default: `output`). Used for all formats (NPZ, AMASS NPZ, CSV, BVH). With one sample, writes a single file per format (e.g. `test.npz`, `test.csv`). With multiple samples, creates a folder and writes `test_00.npz`, `test_01.npz`, … inside it. For SMPLX with one sample, AMASS is written to `stem_amass.npz` so it does not overwrite the main NPZ.
 - `--bvh`: Optional flag. When set, also export BVH (SOMA models only) using the same stem as `--output`.
+- `--bvh_standard_tpose`: If exporting BVH, export with the rest pose being the standard T-pose rather than the rest pose consistent with the BONES-SEED dataset.
 - `--seed`: Seed for reproducible results
 - `--no-postprocess`: Disable post-processing (includes foot skate cleanup and constraint optimization)
 - `--input_folder`: Folder containing meta.json and optional constraints.json. If set, generation settings are loaded from meta.json. These are found in demo example folders.
